@@ -1,5 +1,5 @@
-import React from "react"
 import DataTable from "../src/components/DataTable"
+
 
 export default function Dashboard() {
   return (
