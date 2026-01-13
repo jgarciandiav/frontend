@@ -1,109 +1,86 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom" // ✅ agregado
-import { api } from "../api"
-import { ImprimirFactura } from "../components/ImprimirFactura"
+import { useDataTable } from "../hooks/useDataTable";
+import { Column } from "../types/table";
+import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
 
-export default function Dashboard() {
-  const [facturas, setFacturas] = useState<any[]>([])
-  const [resumen, setResumen] = useState({ total: 0, cobradas: 0, sin_cobrar: 0 })
-  const [itemsMap, setItemsMap] = useState<Record<string, any[]>>({})
+type Props<T> = { data: T[]; columns: Column<T>[]; toolbar?: React.ReactNode };
 
-  const navigate = useNavigate() // ✅ agregado
+export default function DataTable<T extends object>({ data, columns, toolbar }: Props<T>) {
+  const { rows, page, pages, goto, search, setSearch, sortKey, setSortKey, sortDir, setSortDir } =
+    useDataTable(data, columns);
 
-  // Carga inicial
-  useEffect(() => {
-    api.get("/facturas").then(r => setFacturas(r.data))
-    api.get("/facturas/resumen").then(r => setResumen(r.data))
-  }, [])
-
-  // Imprimir: carga items y renderiza componente
-  const handlePrint = (nofactura: string) => {
-    api
-      .get(`/facturaitems?nofactura=${encodeURIComponent(nofactura)}`)
-      .then(r => setItemsMap(prev => ({ ...prev, [nofactura]: r.data })))
-      .catch(() => setItemsMap(prev => ({ ...prev, [nofactura]: [] })))
-  }
-
-  // Borrar: ✅ agregado
-  const handleDelete = (nofactura: string) => {
-    if (!confirm("¿Borrar esta factura?")) return
-    api.delete(`/facturas/${nofactura}`).then(() => {
-      setFacturas(prev => prev.filter(f => f.nofactura !== nofactura))
-      setItemsMap(prev => {
-        const copy = { ...prev }
-        delete copy[nofactura]
-        return copy
-      })
-    })
-  }
+  const handleSort = (key: keyof T) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
 
   return (
-    <div className="container mt-4">
-      {/* Tarjetas de resumen */}
-      <div className="row mb-4">
-        <div className="col-md-4 mb-3">
-          <div className="card text-white bg-primary">
-            <div className="card-body">
-              <h5 className="card-title">Total Facturas</h5>
-              <h2>{resumen.total}</h2>
-            </div>
+    <div className="card shadow-sm">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <FiSearch />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar..."
+              className="form-control w-auto"
+            />
           </div>
+          <div>{toolbar}</div>
         </div>
-        <div className="col-md-4 mb-3">
-          <div className="card text-white bg-success">
-            <div className="card-body">
-              <h5 className="card-title">Cobradas</h5>
-              <h2>{resumen.cobradas}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4 mb-3">
-          <div className="card text-white bg-danger">
-            <div className="card-body">
-              <h5 className="card-title">Sin Cobrar</h5>
-              <h2>{resumen.sin_cobrar}</h2>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Tabla */}
-      <div className="table-responsive">
-        <table className="table table-striped table-hover align-middle">
-          <thead className="table-dark">
-            <tr>
-              <th>No. Factura</th>
-              <th>Cliente</th>
-              <th>Total</th>
-              <th>Cobrado</th>
-              <th style={{ minWidth: 220, whiteSpace: "nowrap" }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {facturas.map((f) => (
-              <tr key={f.nofactura}>
-                <td>{f.nofactura}</td>
-                <td>{f.customer}</td>
-                <td>${f.total}</td>
-                <td>{f.cobrado ? "Sí" : "No"}</td>
-                <td className="text-nowrap">
-                  <button className="btn btn-sm btn-warning me-2" onClick={() => navigate(`/facturas/editar/${f.nofactura}`)}>
-                    Editar
-                  </button>
-                  <button className="btn btn-sm btn-primary me-2" onClick={() => handlePrint(f.nofactura)}>
-                    📄 Imprimir
-                  </button>
-                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(f.nofactura)}>
-                    Borrar
-                  </button>
-                  {/* Renderiza ImprimirFactura solo cuando tengamos items */}
-                  {itemsMap[f.nofactura] && <ImprimirFactura factura={f} items={itemsMap[f.nofactura]} />}
-                </td>
+        <div className="table-responsive">
+          <table className="table table-bordered table-hover align-middle">
+            <thead className="table-dark">
+              <tr>
+                {columns.map((col) => (
+                  <th
+                    key={String(col.key)}
+                    onClick={col.sortable ? () => handleSort(col.key as keyof T) : undefined}
+                    style={{ cursor: col.sortable ? "pointer" : "default" }}
+                  >
+                    {col.header}
+                    {col.sortable && sortKey === col.key && (
+                      <span className="ms-1">{sortDir === "asc" ? "▲" : "▼"}</span>
+                    )}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => (
+                <tr key={idx}>
+                  {columns.map((col) => (
+                    <td key={String(col.key)}>
+                      {col.render ? col.render(row[col.key as keyof T], row) : (row[col.key as keyof T] as React.ReactNode)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <button
+            onClick={() => goto(page - 1)}
+            disabled={page === 1}
+            className="btn btn-sm btn-outline-primary"
+          >
+            <FiChevronLeft />
+          </button>
+          <span className="small text-muted">
+            Página {page} de {pages}
+          </span>
+          <button
+            onClick={() => goto(page + 1)}
+            disabled={page === pages}
+            className="btn btn-sm btn-outline-primary"
+          >
+            <FiChevronRight />
+          </button>
+        </div>
       </div>
     </div>
-  )
+  );
 }
