@@ -1,5 +1,5 @@
 export interface PrintConfig {
-  logo?: string // base64
+  logo?: string
   empresa: {
     nombre: string
     cif: string

@@ -27,6 +27,9 @@ export default function LoginPage() {
           <button className="btn btn-primary w-100" onClick={handle}>
             Entrar
           </button>
+          <div className="text-center mt-3">
+            ¿No tienes cuenta? <button className="btn btn-link p-0" onClick={() => nav("/register")}>Regístrate</button>
+          </div>
         </div>
       </div>
     </div>

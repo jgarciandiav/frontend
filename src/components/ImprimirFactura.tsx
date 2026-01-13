@@ -7,58 +7,137 @@ interface Props {
   config: PrintConfig
 }
 
-export function ImprimirFactura({ factura, items, config }: Props) {
+async function loadLogo(logoFile: string): Promise<string | null> {
+  try {
+    const module = await import(`../assets/${logoFile}`)
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width
+        canvas.height = img.height
+        const ctx = canvas.getContext('2d')
+        ctx?.drawImage(img, 0, 0)
+        resolve(canvas.toDataURL('image/png'))
+      }
+      img.onerror = () => resolve(null)
+      img.src = module.default
+    })
+  } catch {
+    return null
+  }
+}
+
+export async function ImprimirFactura({ factura, items, config }: Props) {
   const pdf = new jsPDF("p", "mm", "a4")
-  const margin = 20
-  const lineHeight = 6
+  const margin = 15
+  const pageWidth = 210
   let y = margin
 
   if (config.logo) {
-    pdf.addImage(config.logo, "PNG", margin, y, 40, 20)
-    y += 25
+    const logoData = await loadLogo(config.logo)
+    if (logoData) {
+      pdf.addImage(logoData, "PNG", margin, y, 45, 22)
+    }
   }
 
-  pdf.setFontSize(10)
-  pdf.text(config.empresa.nombre, margin, y)
-  pdf.text(`CIF: ${config.empresa.cif}`, margin, y + lineHeight)
-  pdf.text(config.empresa.direccion, margin, y + lineHeight * 2)
-  pdf.text(`${config.empresa.cp} - Tlf: ${config.empresa.telefono}`, margin, y + lineHeight * 3)
-  pdf.text(config.empresa.email, margin, y + lineHeight * 4)
-
-  y += 35
-  pdf.setFontSize(14)
-  pdf.text(`FACTURA Nº ${factura.nofactura}`, margin, y)
-  pdf.setFontSize(10)
-  pdf.text(`Fecha: ${factura.fecha}`, margin, y + lineHeight)
-  pdf.text(`Cliente: ${factura.customer}`, margin, y + lineHeight * 2)
-  pdf.text(`Dirección: ${factura.address}`, margin, y + lineHeight * 3)
-
-  y += 25
-  const headers = ["Servicio", "Importe"]
-  const colX = [margin, 160]
+  pdf.setFontSize(18)
   pdf.setFont("helvetica", "bold")
-  headers.forEach((h, i) => pdf.text(h, colX[i], y))
+  pdf.text("FACTURA", pageWidth - margin, y + 5, { align: "right" })
+  pdf.setFontSize(10)
   pdf.setFont("helvetica", "normal")
-  y += lineHeight
+  pdf.text(`Nº ${factura.nofactura}`, pageWidth - margin, y + 12, { align: "right" })
+  pdf.text(`Fecha: ${factura.fecha}`, pageWidth - margin, y + 18, { align: "right" })
+
+  y += 30
+
+  pdf.setFillColor(245, 245, 245)
+  pdf.roundedRect(margin, y, pageWidth - margin * 2, 28, 2, 2, "F")
+
+  pdf.setFontSize(8)
+  pdf.setTextColor(100, 100, 100)
+  pdf.text("EMISOR", margin + 3, y + 5)
+  pdf.setFontSize(10)
+  pdf.setTextColor(0, 0, 0)
+  pdf.setFont("helvetica", "bold")
+  pdf.text(config.empresa.nombre, margin + 3, y + 11)
+  pdf.setFont("helvetica", "normal")
+  pdf.text(`CIF: ${config.empresa.cif}`, margin + 3, y + 17)
+  pdf.text(`${config.empresa.cp} - ${config.empresa.telefono}`, margin + 3, y + 23)
+
+  pdf.setFontSize(8)
+  pdf.setTextColor(100, 100, 100)
+  pdf.text("CLIENTE", pageWidth - margin, y + 5, { align: "right" })
+  pdf.setFontSize(10)
+  pdf.setTextColor(0, 0, 0)
+  pdf.setFont("helvetica", "bold")
+  pdf.text(factura.customer, pageWidth - margin, y + 11, { align: "right" })
+  pdf.setFont("helvetica", "normal")
+  pdf.text(factura.address || "", pageWidth - margin, y + 17, { align: "right" })
+
+  y += 38
+
+  pdf.setDrawColor(220, 220, 220)
+  pdf.setLineWidth(0.5)
+  pdf.line(margin, y, pageWidth - margin, y)
+
+  y += 5
+
+  pdf.setFillColor(240, 240, 240)
+  pdf.rect(margin, y, pageWidth - margin * 2, 8, "F")
+  pdf.setFontSize(9)
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(0, 0, 0)
+  pdf.text("DESCRIPCIÓN", margin + 3, y + 5)
+  pdf.text("IMPORTE", pageWidth - margin, y + 5, { align: "right" })
+
+  y += 8
+
+  pdf.setDrawColor(240, 240, 240)
+  pdf.line(margin, y, pageWidth - margin, y)
+  y += 3
 
   let total = 0
-  items.forEach(it => {
-    if (y + lineHeight > 280) { pdf.addPage(); y = margin }
-    pdf.text(it.service, colX[0], y)
-    pdf.text(`$${Number(it.importe).toFixed(2)}`, colX[1], y, { align: "right" })
+  items.forEach((it, _) => {
+    pdf.setFont("helvetica", "normal")
+    pdf.setTextColor(0, 0, 0)
+    pdf.text(it.service, margin + 3, y)
+    pdf.setFont("helvetica", "bold")
+    pdf.text(`$${Number(it.importe).toFixed(2)}`, pageWidth - margin, y, { align: "right" })
     total += Number(it.importe)
-    y += lineHeight
+    y += 6
+
+    if (y > 250) {
+      pdf.addPage()
+      y = margin
+      pdf.setFillColor(240, 240, 240)
+      pdf.rect(margin, y, pageWidth - margin * 2, 8, "F")
+      pdf.setFontSize(9)
+      pdf.setFont("helvetica", "bold")
+      pdf.text("DESCRIPCIÓN", margin + 3, y + 5)
+      pdf.text("IMPORTE", pageWidth - margin, y + 5, { align: "right" })
+      y += 11
+    }
   })
 
-  if (y + 15 > 280) pdf.addPage()
+  pdf.setDrawColor(220, 220, 220)
+  pdf.line(margin, y, pageWidth - margin, y)
+  y += 8
+
   pdf.setFontSize(12)
-  pdf.text(`Total: $${total.toFixed(2)}`, colX[1], y + 10, { align: "right" })
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(50, 50, 50)
+  pdf.text("TOTAL:", pageWidth - margin - 30, y, { align: "right" })
+  pdf.setTextColor(0, 0, 0)
+  pdf.text(`$${total.toFixed(2)}`, pageWidth - margin, y, { align: "right" })
 
   const pageCount = pdf.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i)
-    pdf.setFontSize(8)
-    pdf.text(`Gracias por su confianza | ${config.empresa.nombre} | Pág ${i} / ${pageCount}`, 105, 290, { align: "center" })
+    pdf.setFontSize(7)
+    pdf.setFont("helvetica", "normal")
+    pdf.setTextColor(150, 150, 150)
+    pdf.text(`${config.empresa.nombre} | CIF: ${config.empresa.cif} | ${config.empresa.email}`, 105, 290, { align: "center" })
   }
 
   pdf.save(`factura_${factura.nofactura}.pdf`)

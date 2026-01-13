@@ -5,6 +5,6 @@ export async function checkIfUsersExist(): Promise<boolean> {
 }
 
 export async function logout() {
-  await api.post("/users/logout")
+  await api.post("/users/logout").catch(() => {})
   window.location.href = "/login"
 }
