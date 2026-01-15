@@ -1,13 +1,17 @@
-import { Outlet } from "react-router-dom"
-import Sidebar from "./Sidebar"
+import Sidebar from "./Sidebar";
+import { Outlet } from "react-router-dom";
+import "../styles/dashboard.css";
+import { ThemeProvider } from "../context/ThemeContext";
 
 export default function Layout() {
   return (
-    <div className="d-flex min-vh-100">
-      <Sidebar />
-      <div className="flex-1 p-4 pt-16 md:pt-4" style={{ flex: 1 }}>
-        <Outlet />
+    <ThemeProvider>
+      <div className="d-flex w-100">
+        <Sidebar />
+        <div className="flex-grow-1" style={{ position: "relative" }}>
+          <Outlet />
+        </div>
       </div>
-    </div>
-  )
+    </ThemeProvider>
+  );
 }

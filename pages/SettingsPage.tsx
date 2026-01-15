@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { usePrintConfig } from "../src/hooks/usePrintConfig";
 import { api } from "../src/api";
 import { notify } from "../src/utils/sweetAlert";
+import { FiSave, FiSettings } from "react-icons/fi";
 
 const empresaSchema = z.object({
   nombre_empresa: z.string().min(1, "Requerido"),
@@ -60,54 +61,69 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="mt-4 card shadow-sm p-4 mx-auto" style={{ maxWidth: "42rem" }}>
-      <h2 className="mb-4">Configuración de impresión</h2>
+    <div className="dashboard-main">
+      <div className="mb-5">
+        <h2 className="fw-bold mb-1">Configuración</h2>
+        <p className="text-muted">Ajusta los detalles de tu empresa para la impresión de facturas</p>
+      </div>
 
-      <form onSubmit={onSubmit} className="row g-3">
-        <div className="col-12">
-          <label className="form-label">Logo (archivo en src/assets/)</label>
-          <div className="mb-2">
-            {logoSrc && <img src={logoSrc} alt="logo" className="img-fluid" style={{ maxHeight: 80 }} />}
+      <div className="stat-card mx-auto" style={{ maxWidth: "800px" }}>
+        <form onSubmit={onSubmit} className="row g-4">
+          <div className="col-12 border-bottom pb-4 mb-2">
+            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2">
+              <FiSettings className="text-primary" /> Perfil de Empresa
+            </h5>
+            <label className="form-label fw-semibold">Logo (archivo en src/assets/)</label>
+            <div className="mb-3 d-flex align-items-center gap-4">
+              {logoSrc && (
+                <div className="p-2 border rounded-3" style={{ backgroundColor: "var(--table-header-bg)" }}>
+                  <img src={logoSrc} alt="logo" className="img-fluid" style={{ maxHeight: 60 }} />
+                </div>
+              )}
+              <div className="flex-grow-1">
+                <input {...register("logo")} className="form-control" placeholder="Ej: logo.svg" />
+                <small className="text-muted">Coloca el archivo de imagen en `src/assets/`</small>
+              </div>
+            </div>
           </div>
-          <input {...register("logo")} className="form-control" placeholder="Ej: logo.svg" />
-          <small className="text-muted">Coloca el archivo de imagen en la carpeta src/assets/</small>
-        </div>
-        <div className="col-md-6">
-          <label className="form-label">Nombre de la empresa</label>
-          <input {...register("nombre_empresa")} className="form-control" />
-          {errors.nombre_empresa && <Err msg={errors.nombre_empresa.message} />}
-        </div>
 
-        <div className="col-md-6">
-          <label className="form-label">CIF</label>
-          <input {...register("cif")} className="form-control" />
-          {errors.cif && <Err msg={errors.cif.message} />}
-        </div>
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">Nombre de la empresa</label>
+            <input {...register("nombre_empresa")} className="form-control" />
+            {errors.nombre_empresa && <Err msg={errors.nombre_empresa.message} />}
+          </div>
 
-        <div className="col-md-4">
-          <label className="form-label">Código postal</label>
-          <input {...register("cp")} className="form-control" />
-          {errors.cp && <Err msg={errors.cp.message} />}
-        </div>
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">CIF / Identificación</label>
+            <input {...register("cif")} className="form-control" />
+            {errors.cif && <Err msg={errors.cif.message} />}
+          </div>
 
-        <div className="col-md-4">
-          <label className="form-label">Teléfono</label>
-          <input {...register("telefono")} className="form-control" />
-          {errors.telefono && <Err msg={errors.telefono.message} />}
-        </div>
+          <div className="col-md-4">
+            <label className="form-label fw-semibold">Código Postal</label>
+            <input {...register("cp")} className="form-control" />
+            {errors.cp && <Err msg={errors.cp.message} />}
+          </div>
 
-        <div className="col-md-4">
-          <label className="form-label">Email</label>
-          <input type="email" {...register("email")} className="form-control" />
-          {errors.email && <Err msg={errors.email.message} />}
-        </div>
+          <div className="col-md-4">
+            <label className="form-label fw-semibold">Teléfono</label>
+            <input {...register("telefono")} className="form-control" />
+            {errors.telefono && <Err msg={errors.telefono.message} />}
+          </div>
 
-        <div className="col-12 text-end">
-          <button type="submit" className="btn btn-success">
-            Guardar configuración
-          </button>
-        </div>
-      </form>
+          <div className="col-md-4">
+            <label className="form-label fw-semibold">Email de Contacto</label>
+            <input type="email" {...register("email")} className="form-control" />
+            {errors.email && <Err msg={errors.email.message} />}
+          </div>
+
+          <div className="col-12 text-end pt-4 border-top">
+            <button type="submit" className="btn-modern btn-modern-success">
+              <FiSave /> Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

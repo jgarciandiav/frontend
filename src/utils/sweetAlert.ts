@@ -43,4 +43,23 @@ export const notify = {
       throw error
     }
   },
+  confirm: async (title: string, text: string, confirmText: string = "Sí, borrar") => {
+    const result = await Swal.fire({
+      title,
+      text,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "var(--primary-blue, #0d6efd)",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: confirmText,
+      cancelButtonText: "Cancelar",
+      customClass: {
+        popup: 'rounded-4 border-0 shadow-lg',
+        confirmButton: 'btn-modern btn-modern-primary px-4',
+        cancelButton: 'btn btn-light px-4 ms-2'
+      },
+      buttonsStyling: false
+    });
+    return result.isConfirmed;
+  },
 }

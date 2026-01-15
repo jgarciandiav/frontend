@@ -23,31 +23,41 @@ export default function Dashboard() {
   const totalGeneral = facturas?.reduce((sum, f) => sum + Number(f.total), 0) || 0;
 
   const columns: Column<any>[] = [
+    { key: "fecha", header: "Fecha", sortable: true },
     { key: "nofactura", header: "Nº Factura", sortable: true },
     { key: "customer", header: "Cliente", sortable: true },
-    { key: "total", header: "Total", sortable: true, render: (v) => `$${Number(v).toFixed(2)}` },
-    { key: "cobrado", header: "Cobrado", sortable: true, render: (v) => (v ? "Sí" : "No") },
+    { key: "total", header: "Total", sortable: true, render: (v) => <span className="fw-bold">${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span> },
+    {
+      key: "cobrado",
+      header: "Estado",
+      sortable: true,
+      render: (v) => (
+        <span className={`badge-status ${v ? "badge-paid" : "badge-pending"}`}>
+          {v ? "Cobrado" : "Pendiente"}
+        </span>
+      )
+    },
     {
       key: "_actions",
       header: "Acciones",
       render: (_, row) => (
-        <div className="btn-group btn-group-sm">
-          <button onClick={() => nav(`/facturas/editar/${row.nofactura}`)} className="btn btn-warning" title="Editar">
-            <FiEdit size={16} />
+        <div className="d-flex gap-1">
+          <button onClick={() => nav(`/facturas/editar/${row.nofactura}`)} className="btn-ghost text-warning" title="Editar">
+            <FiEdit size={18} />
           </button>
           <button
             onClick={async () => {
               if (!config) {
-                alert("No hay configuración de impresión disponible");
+                notify.error("No hay configuración de impresión disponible");
                 return;
               }
               const r = await api.get(`/facturaitems?nofactura=${row.nofactura}`);
               await ImprimirFactura({ factura: row, items: r.data, config });
             }}
-            className="btn btn-primary"
+            className="btn-ghost text-primary"
             title="Imprimir"
           >
-            <FiPrinter size={16} />
+            <FiPrinter size={18} />
           </button>
           {!row.cobrado && (
             <button
@@ -62,20 +72,21 @@ export default function Dashboard() {
                   notify.error("Error al marcar factura como cobrada");
                 }
               }}
-              className="btn btn-success"
+              className="btn-ghost text-success"
               title="Marcar como cobrada"
             >
-              <FiDollarSign size={16} />
+              <FiDollarSign size={18} />
             </button>
           )}
           <button
-            onClick={() => {
-              if (confirm("¿Borrar factura?")) remove(row.nofactura);
+            onClick={async () => {
+              const ok = await notify.confirm("¿Estás seguro?", "Esta acción eliminará la factura de forma permanente.");
+              if (ok) remove(row.nofactura);
             }}
-            className="btn btn-danger"
+            className="btn-ghost text-danger"
             title="Borrar"
           >
-            <FiTrash2 size={16} />
+            <FiTrash2 size={18} />
           </button>
         </div>
       ),
@@ -83,67 +94,62 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="mt-4">
-      <h2 className="mb-4 fs-4">Facturas</h2>
-      <div className="row g-4 mb-4">
-        <div className="col-md-4">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center gap-3">
-                <div className="text-success">
-                  <FiCheckCircle size={40} />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">Cobradas</h6>
-                  <h4 className="mb-0">{cobradas.length}</h4>
-                  <small className="text-muted">${totalCobradas.toFixed(2)} MXN</small>
-                </div>
-              </div>
+    <div className="dashboard-main">
+      <div className="d-flex justify-content-between align-items-center mb-5">
+        <div>
+          <h2 className="fw-bold mb-1">Resumen de Facturación</h2>
+          <p className="text-muted mb-0">Gestiona tus facturas y estados de pago</p>
+        </div>
+        <button onClick={() => nav("/facturas/nueva")} className="btn-modern btn-modern-success">
+          <FiFileText /> Nueva Factura
+        </button>
+      </div>
+
+      <div className="row g-4 mb-5">
+        <div className="col-md-6 col-lg-3">
+          <div className="stat-card">
+            <div className="stat-icon-wrapper bg-soft-green">
+              <FiCheckCircle />
+            </div>
+            <div>
+              <h6 className="text-muted mb-1 uppercase small fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '0.05em' }}>Cobradas</h6>
+              <h4 className="fw-bold mb-0">${totalCobradas.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
+              <small className="text-muted">{cobradas.length} Facturas</small>
             </div>
           </div>
         </div>
-        <div className="col-md-4">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center gap-3">
-                <div className="text-warning">
-                  <FiAlertCircle size={40} />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">Por Cobrar</h6>
-                  <h4 className="mb-0">{porCobrar.length}</h4>
-                  <small className="text-muted">${totalPorCobrar.toFixed(2)} MXN</small>
-                </div>
-              </div>
+        <div className="col-md-6 col-lg-3">
+          <div className="stat-card">
+            <div className="stat-icon-wrapper bg-soft-yellow">
+              <FiAlertCircle />
+            </div>
+            <div>
+              <h6 className="text-muted mb-1 uppercase small fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '0.05em' }}>Por Cobrar</h6>
+              <h4 className="fw-bold mb-0">${totalPorCobrar.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
+              <small className="text-muted">{porCobrar.length} Pendientes</small>
             </div>
           </div>
         </div>
-        <div className="col-md-4">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center gap-3">
-                <div className="text-primary">
-                  <FiFileText size={40} />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">Total</h6>
-                  <h4 className="mb-0">{facturas?.length || 0}</h4>
-                  <small className="text-muted">${totalGeneral.toFixed(2)} MXN</small>
-                </div>
-              </div>
+        <div className="col-md-6 col-lg-3">
+          <div className="stat-card">
+            <div className="stat-icon-wrapper bg-soft-blue">
+              <FiFileText />
+            </div>
+            <div>
+              <h6 className="text-muted mb-1 uppercase small fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '0.05em' }}>Total Facturado</h6>
+              <h4 className="fw-bold mb-0">${totalGeneral.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
+              <small className="text-muted">{facturas?.length || 0} Total</small>
             </div>
           </div>
         </div>
       </div>
+
       <DataTable
         data={facturas || []}
         columns={columns}
+        initialSortKey="fecha"
+        initialSortDir="desc"
         getRowClassName={(row) => row.cobrado ? "table-light" : ""}
-        toolbar={
-          <button onClick={() => nav("/facturas/nueva")} className="btn btn-success">
-            + Nueva Factura
-          </button>
-        }
       />
     </div>
   );

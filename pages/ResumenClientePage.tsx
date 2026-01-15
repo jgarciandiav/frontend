@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../src/api";
 import { Column } from "../src/types/table";
 import DataTable from "../src/components/DataTable";
+import { FiSearch, FiCalendar } from "react-icons/fi";
 
 interface ResumenCliente {
   customer: string;
@@ -44,26 +45,47 @@ export default function ResumenClientePage() {
   };
 
   return (
-    <div className="mt-4">
-      <h2 className="mb-4 fs-4">Resumen por Cliente</h2>
-      <div className="card shadow-sm p-4 mb-4">
-        <div className="row g-3 align-items-end">
+    <div className="dashboard-main">
+      <div className="mb-5">
+        <h2 className="fw-bold mb-1">Resumen por Cliente</h2>
+        <p className="text-muted">Analiza el historial de facturación por cliente en un rango de fechas</p>
+      </div>
+
+      <div className="stat-card p-4 mb-5">
+        <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+          <FiCalendar className="text-primary" /> Filtros de Fecha
+        </h5>
+        <div className="row g-4 align-items-end">
           <div className="col-md-4">
-            <label className="form-label">Fecha Inicio</label>
+            <label className="form-label fw-semibold">Fecha Inicio</label>
             <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="form-control" />
           </div>
           <div className="col-md-4">
-            <label className="form-label">Fecha Fin</label>
+            <label className="form-label fw-semibold">Fecha Fin</label>
             <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="form-control" />
           </div>
           <div className="col-md-4">
-            <button onClick={handleBuscar} disabled={loading} className="btn btn-primary">
-              {loading ? "Buscando..." : "Buscar"}
+            <button onClick={handleBuscar} disabled={loading} className="btn-modern btn-modern-primary w-100 justify-content-center">
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  <span>Buscando...</span>
+                </>
+              ) : (
+                <>
+                  <FiSearch /> Buscar Resumen
+                </>
+              )}
             </button>
           </div>
         </div>
       </div>
-      {data.length > 0 && <DataTable data={data} columns={columns} />}
+
+      {data.length > 0 && (
+        <div className="mt-4">
+          <DataTable data={data} columns={columns} />
+        </div>
+      )}
     </div>
   );
 }
