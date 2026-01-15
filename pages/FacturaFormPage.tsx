@@ -53,7 +53,7 @@ export default function FacturaFormPage() {
 
           <div className="col-md-2">
             <label className="form-label">Cobrado</label>
-            <select {...register("cobrado")} className="form-select">
+            <select {...register("cobrado", { setValueAs: (v) => v === "true" })} className="form-select">
               <option value="false">No</option>
               <option value="true">Sí</option>
             </select>

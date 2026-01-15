@@ -52,7 +52,7 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
   y += 30
 
   pdf.setFillColor(245, 245, 245)
-  pdf.roundedRect(margin, y, pageWidth - margin * 2, 28, 2, 2, "F")
+  pdf.roundedRect(margin, y, pageWidth - margin * 2, 34, 2, 2, "F")
 
   pdf.setFontSize(8)
   pdf.setTextColor(100, 100, 100)
@@ -62,8 +62,9 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
   pdf.setFont("helvetica", "bold")
   pdf.text(config.empresa.nombre, margin + 3, y + 11)
   pdf.setFont("helvetica", "normal")
-  pdf.text(`CIF: ${config.empresa.cif}`, margin + 3, y + 17)
-  pdf.text(`${config.empresa.cp} - ${config.empresa.telefono}`, margin + 3, y + 23)
+  pdf.text(config.empresa.direccion, margin + 3, y + 17)
+  pdf.text(`CIF: ${config.empresa.cif}`, margin + 3, y + 23)
+  pdf.text(`${config.empresa.cp} - ${config.empresa.telefono}`, margin + 3, y + 29)
 
   pdf.setFontSize(8)
   pdf.setTextColor(100, 100, 100)
@@ -75,7 +76,7 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
   pdf.setFont("helvetica", "normal")
   pdf.text(factura.address || "", pageWidth - margin, y + 17, { align: "right" })
 
-  y += 38
+  y += 44
 
   pdf.setDrawColor(220, 220, 220)
   pdf.setLineWidth(0.5)

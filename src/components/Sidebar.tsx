@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FiMenu, FiX, FiLogOut, FiHome, FiFileText, FiUsers, FiSettings } from "react-icons/fi"
+import { FiMenu, FiX, FiLogOut, FiHome, FiFileText, FiUsers, FiSettings, FiPieChart } from "react-icons/fi"
 import { logout } from "../auth"
 
 export default function Sidebar() {
@@ -34,6 +34,9 @@ export default function Sidebar() {
           <a href="/clientes" className="d-flex align-items-center gap-2 px-4 py-2 text-decoration-none text-dark rounded hover-bg-gray-100">
             <FiUsers /> Clientes
           </a>
+          <a href="/resumen-clientes" className="d-flex align-items-center gap-2 px-4 py-2 text-decoration-none text-dark rounded hover-bg-gray-100">
+            <FiPieChart /> Resumen por Cliente
+          </a>
           <a href="/settings" className="d-flex align-items-center gap-2 px-4 py-2 text-decoration-none text-dark rounded hover-bg-gray-100">
             <FiSettings /> Configuración
           </a>
@@ -58,6 +61,9 @@ export default function Sidebar() {
             </a>
             <a href="/clientes" className="d-flex align-items-center gap-2 px-4 py-2 text-decoration-none text-dark rounded hover-bg-gray-100">
               <FiUsers /> Clientes
+            </a>
+            <a href="/resumen-clientes" className="d-flex align-items-center gap-2 px-4 py-2 text-decoration-none text-dark rounded hover-bg-gray-100">
+              <FiPieChart /> Resumen por Cliente
             </a>
             <a href="/settings" className="d-flex align-items-center gap-2 px-4 py-2 text-decoration-none text-dark rounded hover-bg-gray-100">
               <FiSettings /> Configuración

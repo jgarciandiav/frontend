@@ -29,8 +29,10 @@ export function useFacturaForm(defaultValues?: Partial<FacturaInput>) {
   });
 
   const onSubmit = async (data: FacturaInput) => {
+    const [y, m, d] = data.fecha.split("-");
+    const fechaFormateada = `${d}/${m}/${y}`;
     await notify.promise(
-      api.post("/facturas", data),
+      api.post("/facturas", { ...data, fecha: fechaFormateada }),
       { loading: "Guardando...", success: "Factura creada", error: "Error al guardar" }
     );
     nav("/dashboard");

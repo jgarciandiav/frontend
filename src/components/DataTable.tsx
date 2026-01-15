@@ -2,9 +2,9 @@ import { useDataTable } from "../hooks/useDataTable";
 import { Column } from "../types/table";
 import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
 
-type Props<T> = { data: T[]; columns: Column<T>[]; toolbar?: React.ReactNode };
+type Props<T> = { data: T[]; columns: Column<T>[]; toolbar?: React.ReactNode; getRowClassName?: (row: T) => string };
 
-export default function DataTable<T extends object>({ data, columns, toolbar }: Props<T>) {
+export default function DataTable<T extends object>({ data, columns, toolbar, getRowClassName }: Props<T>) {
   const { rows, page, pages, goto, search, setSearch, sortKey, setSortKey, sortDir, setSortDir } =
     useDataTable(data, columns);
 
@@ -49,7 +49,7 @@ export default function DataTable<T extends object>({ data, columns, toolbar }: 
             </thead>
             <tbody>
               {rows.map((row, idx) => (
-                <tr key={idx}>
+                <tr key={idx} className={getRowClassName?.(row)}>
                   {columns.map((col) => (
                     <td key={String(col.key)}>
                       {col.render ? col.render(row[col.key as keyof T], row) : (row[col.key as keyof T] as React.ReactNode)}

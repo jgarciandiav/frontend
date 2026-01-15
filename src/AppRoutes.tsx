@@ -10,9 +10,10 @@ const RegisterPage  = lazy(() => import("../pages/RegisterPage"))
 const Dashboard     = lazy(() => import("../pages/Dashboard"))
 const ServiciosPage = lazy(() => import("../pages/ServiciosPage"))
 const ClientesPage  = lazy(() => import("../pages/ClientesPage"))
-const FacturaFormPage  = lazy(() => import("../pages/FacturaFormPage"))
-const FacturaEditPage  = lazy(() => import("../pages/FacturaEditPage"))
-const SettingsPage     = lazy(() => import("../pages/SettingsPage"))
+const FacturaFormPage    = lazy(() => import("../pages/FacturaFormPage"))
+const FacturaEditPage    = lazy(() => import("../pages/FacturaEditPage"))
+const SettingsPage       = lazy(() => import("../pages/SettingsPage"))
+const ResumenClientePage = lazy(() => import("../pages/ResumenClientePage"))
 
 export default function AppRoutes() {
   const [hasUsers, setHasUsers] = useState<boolean | null>(null)
@@ -31,6 +32,7 @@ export default function AppRoutes() {
             <Route path="/dashboard"element={<Dashboard />} />
             <Route path="/servicios"element={<ServiciosPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
+            <Route path="/resumen-clientes" element={<ResumenClientePage />} />
             <Route path="/facturas/nueva"  element={<FacturaFormPage />} />
             <Route path="/facturas/editar/:nofactura" element={<FacturaEditPage />} />
             <Route path="/settings" element={<SettingsPage />} />

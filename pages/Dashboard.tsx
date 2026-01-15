@@ -5,10 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { ImprimirFactura } from "../src/components/ImprimirFactura";
 import { usePrintConfig } from "../src/hooks/usePrintConfig";
 import { api } from "../src/api";
-import { FiEdit, FiPrinter, FiTrash2, FiCheckCircle, FiAlertCircle, FiFileText } from "react-icons/fi";
+import { notify } from "../src/utils/sweetAlert";
+import { useQueryClient } from "@tanstack/react-query";
+import { FiEdit, FiPrinter, FiTrash2, FiCheckCircle, FiAlertCircle, FiFileText, FiDollarSign } from "react-icons/fi";
 
 export default function Dashboard() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const { data: facturas, remove } = useCrudQuery("/facturas", "facturas");
   const { config } = usePrintConfig();
 
@@ -46,6 +49,25 @@ export default function Dashboard() {
           >
             <FiPrinter size={16} />
           </button>
+          {!row.cobrado && (
+            <button
+              onClick={async () => {
+                try {
+                  const rFactura = await api.get(`/facturas/${row.nofactura}`);
+                  const rItems = await api.get(`/facturaitems?nofactura=${row.nofactura}`);
+                  await api.put(`/facturas/${row.nofactura}`, { ...rFactura.data, cobrado: true, items: rItems.data });
+                  notify.success("Factura cobrada");
+                  qc.invalidateQueries({ queryKey: ["facturas"] });
+                } catch {
+                  notify.error("Error al marcar factura como cobrada");
+                }
+              }}
+              className="btn btn-success"
+              title="Marcar como cobrada"
+            >
+              <FiDollarSign size={16} />
+            </button>
+          )}
           <button
             onClick={() => {
               if (confirm("¿Borrar factura?")) remove(row.nofactura);
@@ -116,6 +138,7 @@ export default function Dashboard() {
       <DataTable
         data={facturas || []}
         columns={columns}
+        getRowClassName={(row) => row.cobrado ? "table-light" : ""}
         toolbar={
           <button onClick={() => nav("/facturas/nueva")} className="btn btn-success">
             + Nueva Factura

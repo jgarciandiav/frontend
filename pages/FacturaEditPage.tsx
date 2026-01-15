@@ -46,7 +46,13 @@ export default function FacturaEditPage() {
     api.get(`/facturas/${nofactura}`)
       .then((r) => {
         setValue("nofactura", r.data.nofactura);
-        setValue("fecha", r.data.fecha);
+        const fecha = r.data.fecha;
+        if (fecha.includes("/")) {
+          const [d, m, y] = fecha.split("/");
+          setValue("fecha", `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+        } else {
+          setValue("fecha", fecha);
+        }
         setValue("customer", r.data.customer);
         setValue("address", r.data.address);
         setValue("cobrado", r.data.cobrado);
@@ -79,7 +85,9 @@ export default function FacturaEditPage() {
       return;
     }
     const total = data.items.reduce((sum: number, it: any) => sum + (Number(it.importe) || 0), 0);
-    const payload = { ...data, total };
+    const [y, m, d] = data.fecha.split("-");
+    const fechaFormateada = `${d}/${m}/${y}`;
+    const payload = { ...data, fecha: fechaFormateada, total };
     await notify.promise(
       api.put(`/facturas/${nofactura}`, payload),
       { loading: "Actualizando...", success: "Factura actualizada", error: "Error al actualizar" }
@@ -117,7 +125,7 @@ export default function FacturaEditPage() {
 
           <div className="col-md-2">
             <label className="form-label">Cobrado</label>
-            <select {...register("cobrado")} className="form-select">
+            <select {...register("cobrado", { setValueAs: (v) => v === "true" })} className="form-select">
               <option value="false">No</option>
               <option value="true">Sí</option>
             </select>
