@@ -11,12 +11,14 @@ import { FaPlus, FaTrash, FaCheck, FaArrowLeft, FaPrint } from "react-icons/fa";
 import { ImprimirFactura } from "../src/components/ImprimirFactura";
 import { notify } from "../src/utils/sweetAlert";
 import { z } from "zod";
+import { useQueryClient } from "@tanstack/react-query";
 
 type FacturaInput = z.infer<typeof facturaSchema>;
 
 export default function FacturaEditPage() {
   const { nofactura } = useParams() as { nofactura: string };
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { config } = usePrintConfig();
 
   /* Maestros */
@@ -123,6 +125,7 @@ export default function FacturaEditPage() {
       api.put(`/facturas/${nofactura}/`, payload),
       { loading: "Actualizando...", success: "Factura actualizada", error: "Error al actualizar" }
     );
+    qc.invalidateQueries({ queryKey: ["facturas"] });
     navigate("/dashboard");
   });
 

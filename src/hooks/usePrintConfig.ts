@@ -14,19 +14,21 @@ const defaultConfig: PrintConfig = {
 };
 
 export function usePrintConfig() {
-  const { data, error, isLoading, refetch } = useCrudQuery<PrintConfig>("/configempresa/", "printConfig");
-  const config = data?.[0]
+  const { data, error, isLoading, refetch } = useCrudQuery<any>("/configempresa/", "printConfig");
+  const lastConfig = (data && data.length > 0 ? data[data.length - 1] : null) as any;
+
+  const config: PrintConfig = lastConfig
     ? {
-        logo: (data[0] as any).logo || "",
-        empresa: {
-          nombre: (data[0] as any).nombre_empresa || "",
-          cif: (data[0] as any).cif || "",
-          direccion: "",
-          cp: (data[0] as any).cp || "",
-          telefono: (data[0] as any).telefono || "",
-          email: (data[0] as any).email || "",
-        },
-      }
+      logo: lastConfig.logo || "",
+      empresa: {
+        nombre: lastConfig.nombre_empresa || "",
+        cif: lastConfig.cif || "",
+        direccion: lastConfig.address1 || "",
+        cp: lastConfig.cp || "",
+        telefono: lastConfig.telefono || "",
+        email: lastConfig.email || "",
+      },
+    }
     : defaultConfig;
   return { config, error, isLoading, refetch };
 }

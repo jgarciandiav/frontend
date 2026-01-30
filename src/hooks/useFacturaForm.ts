@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { facturaSchema } from "../schemas/factura";
 import { api } from "../api";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ type FacturaInput = z.infer<typeof facturaSchema>;
 
 export function useFacturaForm(defaultValues?: Partial<FacturaInput>) {
   const nav = useNavigate();
+  const qc = useQueryClient();
 
   const {
     register,
@@ -73,6 +75,7 @@ export function useFacturaForm(defaultValues?: Partial<FacturaInput>) {
       api.post("/facturas/", payload),
       { loading: "Guardando...", success: "Factura creada", error: "Error al guardar" }
     );
+    qc.invalidateQueries({ queryKey: ["facturas"] });
     nav("/dashboard");
   };
 

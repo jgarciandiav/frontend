@@ -9,6 +9,7 @@ import { FiSave, FiSettings } from "react-icons/fi";
 
 const empresaSchema = z.object({
   nombre_empresa: z.string().min(1, "Requerido"),
+  address1: z.string().min(1, "Requerido"),
   cif: z.string().min(1, "Requerido"),
   cp: z.string().min(1, "Requerido"),
   telefono: z.string().min(1, "Requerido"),
@@ -43,6 +44,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (config?.empresa) {
       setValue("nombre_empresa", config.empresa.nombre);
+      setValue("address1", config.empresa.direccion);
       setValue("cif", config.empresa.cif);
       setValue("cp", config.empresa.cp);
       setValue("telefono", config.empresa.telefono);
@@ -91,6 +93,12 @@ export default function SettingsPage() {
             <label className="form-label fw-semibold">Nombre de la empresa</label>
             <input {...register("nombre_empresa")} className="form-control" />
             {errors.nombre_empresa && <Err msg={errors.nombre_empresa.message} />}
+          </div>
+
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">Dirección de la empresa</label>
+            <input {...register("address1")} className="form-control" />
+            {errors.address1 && <Err msg={errors.address1.message} />}
           </div>
 
           <div className="col-md-6">
