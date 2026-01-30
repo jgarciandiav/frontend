@@ -21,7 +21,7 @@ export default function RegisterPage() {
   return (
     <div className="auth-bg">
       <div className="auth-card" style={{ maxWidth: "480px" }}>
-        <div className="auth-logo" style={{ background: "var(--primary-green)", boxShadow: "0 10px 20px rgba(25, 135, 84, 0.2)" }}>
+        <div className="auth-logo" style={{ backgroundColor: "var(--success-green)", boxShadow: "0 10px 20px rgba(25, 135, 84, 0.2)" }}>
           <FiUserPlus />
         </div>
 

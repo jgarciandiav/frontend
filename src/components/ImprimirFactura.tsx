@@ -43,11 +43,11 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
 
   pdf.setFontSize(18)
   pdf.setFont("helvetica", "bold")
-  pdf.text("FACTURA", pageWidth - margin, y + 5, { align: "right" })
+  pdf.text("INVOICE", pageWidth - margin, y + 5, { align: "right" })
   pdf.setFontSize(10)
   pdf.setFont("helvetica", "normal")
   pdf.text(`Nº ${factura.nofactura}`, pageWidth - margin, y + 12, { align: "right" })
-  pdf.text(`Fecha: ${factura.fecha}`, pageWidth - margin, y + 18, { align: "right" })
+  pdf.text(`Date: ${factura.fecha}`, pageWidth - margin, y + 18, { align: "right" })
 
   y += 30
 
@@ -56,19 +56,19 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
 
   pdf.setFontSize(8)
   pdf.setTextColor(100, 100, 100)
-  pdf.text("EMISOR", margin + 3, y + 5)
+  pdf.text("FROM", margin + 3, y + 5)
   pdf.setFontSize(10)
   pdf.setTextColor(0, 0, 0)
   pdf.setFont("helvetica", "bold")
   pdf.text(config.empresa.nombre, margin + 3, y + 11)
   pdf.setFont("helvetica", "normal")
   pdf.text(config.empresa.direccion, margin + 3, y + 17)
-  pdf.text(`CIF: ${config.empresa.cif}`, margin + 3, y + 23)
+  pdf.text(`TAX ID: ${config.empresa.cif}`, margin + 3, y + 23)
   pdf.text(`${config.empresa.cp} - ${config.empresa.telefono}`, margin + 3, y + 29)
 
   pdf.setFontSize(8)
   pdf.setTextColor(100, 100, 100)
-  pdf.text("CLIENTE", pageWidth - margin, y + 5, { align: "right" })
+  pdf.text("BILL TO", pageWidth - margin, y + 5, { align: "right" })
   pdf.setFontSize(10)
   pdf.setTextColor(0, 0, 0)
   pdf.setFont("helvetica", "bold")
@@ -89,8 +89,8 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
   pdf.setFontSize(9)
   pdf.setFont("helvetica", "bold")
   pdf.setTextColor(0, 0, 0)
-  pdf.text("DESCRIPCIÓN", margin + 3, y + 5)
-  pdf.text("IMPORTE", pageWidth - margin, y + 5, { align: "right" })
+  pdf.text("DESCRIPTION", margin + 3, y + 5)
+  pdf.text("AMOUNT", pageWidth - margin, y + 5, { align: "right" })
 
   y += 8
 
@@ -102,7 +102,8 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
   items.forEach((it, _) => {
     pdf.setFont("helvetica", "normal")
     pdf.setTextColor(0, 0, 0)
-    pdf.text(it.service, margin + 3, y)
+    // Usamos la traducción si existe, si no, el original
+    pdf.text(it.servicetranslate || it.service, margin + 3, y)
     pdf.setFont("helvetica", "bold")
     pdf.text(`$${Number(it.importe).toFixed(2)}`, pageWidth - margin, y, { align: "right" })
     total += Number(it.importe)
@@ -115,8 +116,8 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
       pdf.rect(margin, y, pageWidth - margin * 2, 8, "F")
       pdf.setFontSize(9)
       pdf.setFont("helvetica", "bold")
-      pdf.text("DESCRIPCIÓN", margin + 3, y + 5)
-      pdf.text("IMPORTE", pageWidth - margin, y + 5, { align: "right" })
+      pdf.text("DESCRIPTION", margin + 3, y + 5)
+      pdf.text("AMOUNT", pageWidth - margin, y + 5, { align: "right" })
       y += 11
     }
   })
@@ -138,7 +139,7 @@ export async function ImprimirFactura({ factura, items, config }: Props) {
     pdf.setFontSize(7)
     pdf.setFont("helvetica", "normal")
     pdf.setTextColor(150, 150, 150)
-    pdf.text(`${config.empresa.nombre} | CIF: ${config.empresa.cif} | ${config.empresa.email}`, 105, 290, { align: "center" })
+    pdf.text(`${config.empresa.nombre} | TAX ID: ${config.empresa.cif} | ${config.empresa.email}`, 105, 290, { align: "center" })
   }
 
   pdf.save(`factura_${factura.nofactura}.pdf`)

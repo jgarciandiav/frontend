@@ -84,12 +84,43 @@ export default function FacturaEditPage() {
       notify.error("Complete todos los campos y al menos un item");
       return;
     }
-    const total = data.items.reduce((sum: number, it: any) => sum + (Number(it.importe) || 0), 0);
+
+    // Intentar traducir los items si la API de Chrome está disponible
+    let itemsTraducidos = [...data.items];
+
+    try {
+      // @ts-ignore - La API puede estar en 'Translator' (global) o bajo 'window.ai.translator'
+      const translatorAPI = (window as any).Translator || (window as any).ai?.translator;
+
+      if (translatorAPI) {
+        const sourceLanguage = 'es';
+        const targetLanguage = 'en';
+
+        const availability = await translatorAPI.availability({ sourceLanguage, targetLanguage });
+
+        if (availability !== 'unavailable') {
+          const translator = await translatorAPI.create({ sourceLanguage, targetLanguage });
+
+          itemsTraducidos = await Promise.all(
+            data.items.map(async (item) => {
+              const translated = item.service ? await translator.translate(item.service) : "";
+              return { ...item, servicetranslate: translated };
+            })
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error translation:", error);
+    }
+
+    const total = itemsTraducidos.reduce((sum: number, it: any) => sum + (Number(it.importe) || 0), 0);
     const [y, m, d] = data.fecha.split("-");
     const fechaFormateada = `${d}/${m}/${y}`;
-    const payload = { ...data, fecha: fechaFormateada, total };
+
+    const payload = { ...data, items: itemsTraducidos, fecha: fechaFormateada, total };
+
     await notify.promise(
-      api.put(`/facturas/${nofactura}`, payload),
+      api.put(`/facturas/${nofactura}/`, payload),
       { loading: "Actualizando...", success: "Factura actualizada", error: "Error al actualizar" }
     );
     navigate("/dashboard");
@@ -112,7 +143,7 @@ export default function FacturaEditPage() {
           <div className="row g-4 mb-4">
             <div className="col-md-3">
               <label className="form-label fw-semibold">Número de Factura</label>
-              <input {...register("nofactura")} disabled className="form-control" style={{ backgroundColor: "var(--table-header-bg)" }} />
+              <input {...register("nofactura")} readOnly className="form-control" style={{ backgroundColor: "var(--table-header-bg)" }} />
               {errors.nofactura && <div className="invalid-feedback d-block">{errors.nofactura.message}</div>}
             </div>
 

@@ -29,10 +29,48 @@ export function useFacturaForm(defaultValues?: Partial<FacturaInput>) {
   });
 
   const onSubmit = async (data: FacturaInput) => {
+    // Intentar traducir los items si la API de Chrome está disponible
+    let itemsTraducidos = [...data.items];
+
+    try {
+      // @ts-ignore - La API puede estar en 'Translator' (global) o bajo 'window.ai.translator'
+      const translatorAPI = (window as any).Translator || (window as any).ai?.translator;
+
+      if (translatorAPI) {
+        const sourceLanguage = 'es';
+        const targetLanguage = 'en';
+
+        const availability = await translatorAPI.availability({ sourceLanguage, targetLanguage });
+
+        if (availability !== 'unavailable') {
+          const translator = await translatorAPI.create({ sourceLanguage, targetLanguage });
+
+          // Usamos Promise.all para traducir todos los items en paralelo y crear nuevos objetos
+          itemsTraducidos = await Promise.all(
+            data.items.map(async (item) => {
+              const translated = item.service ? await translator.translate(item.service) : "";
+              return { ...item, servicetranslate: translated };
+            })
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error translation:", error);
+    }
+
     const [y, m, d] = data.fecha.split("-");
     const fechaFormateada = `${d}/${m}/${y}`;
+    const total = itemsTraducidos.reduce((sum, it) => sum + (Number(it.importe) || 0), 0);
+
+    const payload = {
+      ...data,
+      items: itemsTraducidos,
+      fecha: fechaFormateada,
+      total
+    };
+
     await notify.promise(
-      api.post("/facturas", { ...data, fecha: fechaFormateada }),
+      api.post("/facturas/", payload),
       { loading: "Guardando...", success: "Factura creada", error: "Error al guardar" }
     );
     nav("/dashboard");

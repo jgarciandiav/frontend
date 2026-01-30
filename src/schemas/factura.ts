@@ -3,6 +3,7 @@ import { z } from "zod"
 export const itemSchema = z.object({
   service: z.string().min(1, "Escriba un servicio"),
   importe: z.number().positive("Importe > 0"),
+  servicetranslate: z.string().optional().nullable(),
 })
 
 export const facturaSchema = z.object({
